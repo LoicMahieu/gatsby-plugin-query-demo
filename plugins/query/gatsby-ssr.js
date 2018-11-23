@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 
 const clients = new Map()
 
-export const wrapRootElement = ({ element, pathname }) => {
+export const wrapPageElement = ({ element, pathname }) => {
   const client = new ApolloClient({
     fetch,
     uri: 'http://localhost:4000/graphql',
@@ -30,11 +30,7 @@ export const replaceRenderer = async ({ bodyComponent }) => {
   await getDataFromTree(bodyComponent)
 }
 
-export const onPreRenderHTML = ({
-  pathname,
-  getPostBodyComponents,
-  replacePostBodyComponents,
-}) => {
+export const onPreRenderHTML = ({ pathname, setRenderData, getRenderData }) => {
   const client = clients.get(pathname)
   if (!client) {
     return
@@ -42,17 +38,8 @@ export const onPreRenderHTML = ({
 
   const initialState = client.extract()
 
-  const initialStateScript = (
-    <script
-      key={`apollo-initial-state`}
-      id={`gatsby-plugin-query`}
-      dangerouslySetInnerHTML={{
-        __html: `/*<![CDATA[*/window.__APOLLO_STATE__=${JSON.stringify(
-          initialState
-        )};/*]]>*/`,
-      }}
-    />
-  )
-
-  replacePostBodyComponents([...getPostBodyComponents(), initialStateScript])
+  setRenderData({
+    ...getRenderData(),
+    __APOLLO_STATE__: initialState,
+  })
 }
