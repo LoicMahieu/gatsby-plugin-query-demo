@@ -1,15 +1,20 @@
 import React from 'react'
-import ApolloClient from 'apollo-boost'
+import ApolloClient from 'apollo-client'
 import { ApolloProvider, getDataFromTree } from 'react-apollo'
 import fetch from 'node-fetch'
+import { HttpLink } from 'apollo-link-http'
+import { InMemoryCache } from 'apollo-cache-inmemory'
 
 const clients = new Map()
 
 export const wrapPageElement = ({ element, pathname }) => {
   const client = new ApolloClient({
     ssrMode: true,
-    fetch,
-    uri: 'http://localhost:4000/graphql',
+    cache: new InMemoryCache(),
+    link: new HttpLink({
+      fetch,
+      uri: 'http://localhost:4000/graphql',
+    })
   })
   clients.set(pathname, client)
 
