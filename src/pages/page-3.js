@@ -4,7 +4,7 @@ import { Link, graphql } from 'gatsby'
 const SecondPage = ({ data }) => (
   <div>
     <h1>Hi from the second page</h1>
-    <p>Welcome to page 2</p>
+    <p>Welcome to page 3</p>
     <Link to="/">Go back to the homepage</Link>
     <pre>{JSON.stringify(data, null, 2)}</pre>
   </div>
@@ -19,7 +19,7 @@ export const query = graphql`
         }
       }
     }
-    allProductsJson {
+    allProductsJson (filter: { title: { regex: "/bar/" } }) {
       edges {
         node {
           id

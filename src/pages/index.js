@@ -5,14 +5,12 @@ import { Query } from 'react-apollo'
 
 console.log(Query)
 
-const GetSitePagesQuery = gql`
+const GET_MOVIES = gql`
   {
     allSitePage {
       edges {
         node {
           id
-
-          makeLink (selector: "Booooom")
         }
       }
     }
@@ -20,7 +18,7 @@ const GetSitePagesQuery = gql`
 `
 
 const GetSitePages = () => (
-  <Query query={GetSitePagesQuery}>
+  <Query query={GET_MOVIES}>
     {({ loading, error, data }) => {
       if (loading) return <div>Loading...</div>
       if (error) return <div>Error :(</div>
@@ -35,7 +33,8 @@ const IndexPage = () => (
     <h1>Hi people</h1>
     <p>Welcome to your new Gatsby site.</p>
     <p>Now go build something great.</p>
-    <a href="/page-2/">Go to page 2</a>
+    <Link to="/page-2/">Go to page 2</Link>
+    <Link to="/page-3/">Go to page 3</Link>
 
     <GetSitePages />
   </div>
