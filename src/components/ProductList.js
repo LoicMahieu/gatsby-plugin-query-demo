@@ -3,8 +3,6 @@ import { Link } from 'gatsby'
 import { gql } from 'apollo-boost'
 import { Query } from 'react-apollo'
 
-console.log(Query)
-
 const GET_PRODUCTS = gql`
   query ($productId: String) {
     allProductsJson (filter: { id: { eq: $productId } }) {
@@ -23,6 +21,7 @@ class ProductList extends React.Component {
   }
 
   componentDidMount () {
+    // This illustrate that we can't do query in runtime
     this.setState({ productId: 'b465118f-fdf3-599f-b94a-3ac446e3636d' })
   }
 

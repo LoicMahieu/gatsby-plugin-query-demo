@@ -4,8 +4,6 @@ import { gql } from 'apollo-boost'
 import { Query } from 'react-apollo'
 import ProductList from '../components/ProductList'
 
-console.log(Query)
-
 const GET_SITE_PAGES = gql`
   {
     allSitePage {
