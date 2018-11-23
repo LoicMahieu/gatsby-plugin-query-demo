@@ -7,6 +7,7 @@ const clients = new Map()
 
 export const wrapPageElement = ({ element, pathname }) => {
   const client = new ApolloClient({
+    ssrMode: true,
     fetch,
     uri: 'http://localhost:4000/graphql',
   })
