@@ -1,0 +1,87 @@
+patch-package
+--- a/node_modules/gatsby/cache-dir/api-runner-ssr.js
++++ b/node_modules/gatsby/cache-dir/api-runner-ssr.js
+@@ -40,3 +40,12 @@ module.exports = (api, args, defaultReturn, argTransform) => {
+     return [defaultReturn]
+   }
+ }
++
++module.exports.apiRunnerAsync = (api, args, defaultReturn) =>
++  plugins.reduce(
++    (previous, next) =>
++      next.plugin[api]
++        ? previous.then(() => next.plugin[api](args, next.options))
++        : previous,
++    Promise.resolve()
++  )
+--- a/node_modules/gatsby/cache-dir/static-entry.js
++++ b/node_modules/gatsby/cache-dir/static-entry.js
+@@ -10,6 +10,8 @@ const syncRequires = require(`./sync-requires`)
+ const { dataPaths, pages } = require(`./data.json`)
+ const { version: gatsbyVersion } = require(`gatsby/package.json`)
+ 
++const { apiRunnerAsync } = apiRunner
++
+ // Speed up looking up pages.
+ const pagesObjectMap = new Map()
+ pages.forEach(p => pagesObjectMap.set(p.path, p))
+@@ -49,7 +51,7 @@ const getPage = path => pagesObjectMap.get(path)
+ 
+ const createElement = React.createElement
+ 
+-export default (pagePath, callback) => {
++export default async (pagePath, callback) => {
+   let bodyHtml = ``
+   let headComponents = [
+     <meta name="generator" content={`Gatsby ${gatsbyVersion}`} />,
+@@ -171,7 +173,7 @@ export default (pagePath, callback) => {
+   ).pop()
+ 
+   // Let the site or plugin render the page component.
+-  apiRunner(`replaceRenderer`, {
++  await apiRunnerAsync(`replaceRenderer`, {
+     bodyComponent,
+     replaceBodyHTMLString,
+     setHeadComponents,
+--- a/node_modules/gatsby/dist/bootstrap/index.js
++++ b/node_modules/gatsby/dist/bootstrap/index.js
+@@ -442,6 +442,7 @@ function () {
+         report.log(``); // onPostBootstrap
+ 
+         activity = report.activityTimer(`onPostBootstrap`, {
++          store,
+           parentSpan: bootstrapSpan
+         });
+         activity.start();
+--- a/node_modules/gatsby/dist/utils/html-renderer-queue.js
++++ b/node_modules/gatsby/dist/utils/html-renderer-queue.js
+@@ -11,12 +11,7 @@ const numWorkers = require(`physical-cpu-count`) || 1;
+ const _require = require(`lodash`),
+       chunk = _require.chunk;
+ 
+-const workerPool = new Worker(require.resolve(`./worker`), {
+-  numWorkers,
+-  forkOptions: {
+-    silent: false
+-  }
+-});
++const workerPool = require(`./worker`)
+ 
+ module.exports = (htmlComponentRendererPath, pages, activity) => new Promise((resolve, reject) => {
+   // We need to only pass env vars that are set programatically in gatsby-cli
+--- a/node_modules/gatsby/dist/utils/worker.js
++++ b/node_modules/gatsby/dist/utils/worker.js
+@@ -28,11 +28,11 @@ function renderHTML({
+   // This is being executed in child process, so we need to set some vars
+   // for modules that aren't bundled by webpack.
+   envVars.forEach(([key, value]) => process.env[key] = value);
+-  return Promise.map(paths, path => new Promise((resolve, reject) => {
++  return Promise.map(paths, path => new Promise(async (resolve, reject) => {
+     const htmlComponentRenderer = require(htmlComponentRendererPath);
+ 
+     try {
+-      htmlComponentRenderer.default(path, (throwAway, htmlString) => {
++      await htmlComponentRenderer.default(path, (throwAway, htmlString) => {
+         resolve(fs.outputFile(generatePathToOutput(path), htmlString));
+       });
+     } catch (e) {
