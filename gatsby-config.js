@@ -14,6 +14,6 @@ module.exports = {
         path: `${__dirname}/src/data/products`
       }
     },
-    { resolve: path.resolve(__dirname, './plugins/query') }
+    `query`
   ],
 }
